@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /usr/bin/env bash
 
 # Make the site live again, for instance by tweaking a .htaccess file
 # or starting a node server. In this example we also set up a
@@ -9,7 +9,15 @@
 # need traffic forwarded from a reverse proxy server on port 80
 
 # Useful for debugging
-#set -x verbose
+# set -x verbose
+
+TARGET="${1:-production}"
+
+source deployment/settings.$TARGET
+
+# Express should not reveal information on errors,
+# also optimizes Express performance
+export NODE_ENV=${NODE_ENV:-$TARGET}
 
 if [ ! -f "app.js" ]; then
   echo "I don't see app.js in the current directory."
@@ -23,7 +31,7 @@ if [ -f "data/port" ]; then
 else
   # No port set yet for this site. Scan and sort the existing port numbers if any,
   # grab the highest existing one
-  PORT=`cat ../../../*/data/port 2>/dev/null | tr " " "\n" | sort -n | tail -1`
+  PORT=`cat ../../../*/data/port 2>/dev/null | sort -n | tail -1`
   if [ "$PORT" == "" ]; then
   	echo "First app ever, assigning port 3000"
   	PORT=3000
@@ -42,21 +50,18 @@ fi
 # Use a "for" loop. A classic single-port file will do the
 # right thing, but so will a file with multiple port numbers
 # for load balancing across multiple cores
-
 for port in $PORT
 do
   export PORT=$port
   forever --minUptime=1000 --spinSleepTime=10000 -o data/console.log -e data/error.log start `pwd`/app.js && echo "Site started"
 done
 
-# Run the app without 'forever'. Record the process id so 'stop'
-# can kill it later.
-
-# We recommend installing 'forever' instead for node apps.
-# For non-node apps this code may be helpful
-
+# Run the app without 'forever'. Record the process id so 'stop' can kill it later.
+# We recommend installing 'forever' instead for node apps. For non-node apps this code
+# may be helpful
+#
 # node app.js >> data/console.log 2>&1 &
 # PID=$!
 # echo $PID > data/pid
-
+#
 #echo "Site started"

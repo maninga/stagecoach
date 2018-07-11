@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /usr/bin/env bash
 
 # Settings shared by all targets (staging, production, etc). Usually the
 # shortname of the project (which is also the hostname for the frontend

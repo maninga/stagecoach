@@ -1,9 +1,16 @@
-#!/bin/bash
+#! /usr/bin/env bash
 
-# Run any necessary database migration tasks that should happen
-# while the site is paused here.
+TARGET="${1:-production}"
 
-#node app.js apostrophe-migrations:migrate
+source deployment/settings.$TARGET
+
+# Express should not reveal information on errors,
+# also optimizes Express performance
+export NODE_ENV=${NODE_ENV:-$TARGET}
+
+# Run any necessary database migration tasks that should happen while the
+# site is paused here.
+
+# node app apostrophe-migrations:migrate
 
 echo "Site migrated"
-
