@@ -45,7 +45,15 @@ KEPT=$[$KEEP+1]
 
 if [ -f "deployment/before-connecting" ]; then
   # A good place to run "gulp" etc.
-  bash deployment/before-connecting
+  bash deployment/before-connecting $TARGET
+  if [ $? -ne 0 ]; then
+    echo " - before-connecting failed!"
+    # Todo: ask user for what he would like to do:
+    # - continue deployment
+    # - abort to investigate
+    # - jump to after-disconnecting
+    exit 1
+  fi
 fi
 
 # For now we just don't check whether 'stop' worked, because it fails on the first
@@ -54,7 +62,7 @@ fi
 # maintainable thing
 
 ssh -p $SSH_PORT $USER@$SERVER "mkdir -p $DIR/deployments" &&
-rsync -e "ssh -p $SSH_PORT -l$USER" -C -a --delete $EXCLUDE . $USER@$SERVER:$DEPLOYTO &&
+rsync -e "ssh -p $SSH_PORT -l$USER" -C -a -L -K --delete $EXCLUDE . $USER@$SERVER:$DEPLOYTO &&
 ssh -p $SSH_PORT $USER@$SERVER <<EOM
   $ADJUST_PATH
   # A good place to run "npm install"
@@ -62,7 +70,7 @@ ssh -p $SSH_PORT $USER@$SERVER <<EOM
   hostname
   if [ -f $DEPLOYTO/deployment/dependencies ]; then
     cd $DEPLOYTO
-    bash deployment/dependencies
+    bash deployment/dependencies $TARGET
   fi
   OUTCOME="\$?"
   if [ \$OUTCOME -eq 0 ]; then
@@ -75,18 +83,18 @@ ssh -p $SSH_PORT $USER@$SERVER <<EOM
         cd $CURRENT &&
         echo "Stopping previous deployment" &&
         STOPPED=1 &&
-        bash deployment/stop
+        bash deployment/stop $TARGET
       else
         echo "Previous deployment is missing"
       fi
     fi
     # Run migrations and start new deployment after flipping symlink
     cd $DEPLOYTO &&
-    bash deployment/migrate &&
+    bash deployment/migrate $TARGET &&
     rm -rf $CURRENT &&
     ln -s $DEPLOYTO $CURRENT &&
     cd $CURRENT &&
-    bash deployment/start
+    bash deployment/start $TARGET
     OUTCOME="\$?"
   fi
   # If deployment failed, relink and restart the previous deployment
@@ -98,7 +106,7 @@ ssh -p $SSH_PORT $USER@$SERVER <<EOM
       ln -s \$FORMER $CURRENT &&
       if [ \$STOPPED -eq 1 ]; then
         echo "Restarting previous deployment" &&
-        cd $CURRENT && bash deployment/start
+        cd $CURRENT && bash deployment/start $TARGET
       fi
     fi
     echo "Removing failed deployment"
@@ -116,7 +124,17 @@ ssh -p $SSH_PORT $USER@$SERVER <<EOM
   fi
 EOM
 
-if [ $? -ne 0 ]; then
+OUTCOME=$?
+
+if [ -f "deployment/after-disconnecting" ]; then
+  # A good place to run "gulp" etc.
+  bash deployment/after-disconnecting $TARGET
+  if [ $? -ne 0 ]; then
+    echo " - after-disconnecting failed!"
+  fi
+fi
+
+if [ $OUTCOME -ne 0 ]; then
   echo "Deployment failed!"
   exit 1
 else
