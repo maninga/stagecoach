@@ -24,11 +24,10 @@ source deployment/settings.$TARGET || exit 1
 
 ssh -p $SSH_PORT $USER@$SERVER <<EOM
 cd $DIR/current || exit 1
-bash deployment/stop &&
+bash deployment/stop $TARGET &&
 cd $DIR &&
 cd ../.. &&
 mkdir -p disabled-apps &&
 mv apps/$PROJECT disabled-apps/$PROJECT &&
 echo "Disabled."
 EOM
-

@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Start all the apps. Runs on the SERVER. Not a remote tool.
+TARGET="${1:-production}"
 
 source /opt/stagecoach/settings
 
 for dir in `ls "$DIR/apps"`
 do
   echo "Launching $dir"
-  (su $USER -c "cd $DIR/apps/$dir/current; bash deployment/start")
+  (su $USER -c "cd $DIR/apps/$dir/current; bash deployment/start $TARGET")
 done
-

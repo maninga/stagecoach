@@ -150,6 +150,12 @@ As of 10/14/16 Stagecoach now runs `deployment/before-connecting`, *locally on y
 
 This script is a convenient place to run a gulp build or similar, saving you the hassle of installing gulp and similar tools in production.
 
+## Running gulp, grunt, make etc. *after* deployment
+
+As of 07/11/18 Stagecoach now runs `deployment/after-disconnecting`, *locally on your computer*, after deploying.
+
+This script is a convenient place to run a make clean or similar, it could be useful to cleanup additional files added by `deployment/before-connecting` to your working directory.
+
 ## Warnings and Limitations
 
 `sc-deploy` expects that you will not have spaces in your target deployment folder name or your project name. If you like making things difficult for shell scripts, this is not the tool for you.

@@ -32,12 +32,12 @@ fi
 
 ssh -p $SSH_PORT $USER@$SERVER <<EOM
 cd $DIR/current &&
-sh deployment/stop &&
+sh deployment/stop $TARGET &&
 cd $DIR &&
 rm -f $DIR/current &&
 ln -s $DIR/deployments/$2 $DIR/current &&
 cd $DIR/current &&
-sh deployment/migrate &&
-sh deployment/start &&
+sh deployment/migrate $TARGET &&
+sh deployment/start $TARGET &&
 echo "Rollback successful."
 EOM

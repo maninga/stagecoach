@@ -20,7 +20,7 @@ source deployment/settings.$TARGET || exit 1
 
 ssh -p $SSH_PORT $USER@$SERVER <<EOM
 cd $DIR/current &&
-bash deployment/stop &&
-bash deployment/start &&
+bash deployment/stop $TARGET &&
+bash deployment/start $TARGET &&
 echo "Restart successful."
 EOM
